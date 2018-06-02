@@ -35,14 +35,15 @@ router.get('/', (req, res) => {
  * To create new alarm.
  */
 router.post('/', (req, res) => {
-  const { region, latitude, longitude, connected, powerON, alarmON } = req.body;
+  const { idEsp, region, latitude, longitude, connected, powerOn, alarmOn } = req.body;
   const alarm = new Alarm({
+    idEsp,
     region, 
     latitude, 
     longitude,
     connected, 
-    powerON, 
-    alarmON,
+    powerOn, 
+    alarmOn,
   });
   alarm.save((saveErr) => {
     if (saveErr) {

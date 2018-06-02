@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const alarmSchema = new Schema({
-  region: String,
-  latitude: Number,
-  longitude: Number,
+  idEsp: { type: String, required: true, unique: true },
+  region: { type: String, required: true },
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
   connected: { type: Boolean, default: false },
   powerOn: { type: Boolean, default: false },
   alarmOn: { type: Boolean, default: false }
