@@ -18,6 +18,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/phone', require('./routes/apiPhone'));
+app.use('/alarm', require('./routes/apiAlarm'));
+app.use('/user', require('./routes/apiUser'));
 
 app.set('port', process.env.PORT || 8080);
 

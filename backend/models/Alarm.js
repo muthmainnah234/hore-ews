@@ -6,10 +6,12 @@ const alarmSchema = new Schema({
   region: String,
   latitude: Number,
   longitude: Number,
-  connected: Boolean,
-  powerON: Boolean,
-  alarmON: Boolean
+  connected: { type: Boolean, default: false },
+  powerOn: { type: Boolean, default: false },
+  alarmOn: { type: Boolean, default: false }
 }, { timestamps: true });
+
+alarmSchema.index({ latitude: 1, longitude: 1 }, { unique: true });
 
 const Alarm = mongoose.model('Alarm', alarmSchema);
 
