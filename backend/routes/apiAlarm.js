@@ -7,7 +7,7 @@ const Alarm = require('../models/Alarm');
  * To get all available alarms.
  */
 router.get('/', (req, res) => {
-  Alarm.find((findErr, alarms) => {
+  Alarm.find(req.query, (findErr, alarms) => {
     if (findErr) {
       return res.json({
         success: false,
