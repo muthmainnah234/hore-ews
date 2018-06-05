@@ -7,9 +7,9 @@ const alarmSchema = new Schema({
   region: { type: String, required: true },
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },
-  connected: { type: Boolean, default: false },
-  powerOn: { type: Boolean, default: false },
-  alarmOn: { type: Boolean, default: false }
+  connection: { type: String, enum: [ 'ON', 'OFF' ], default: 'OFF' },
+  power: { type: String, enum: [ 'ON', 'OFF' ], default: 'OFF' },
+  alarmState: { type: String, enum: [ 'ON', 'OFF' ], default: 'OFF' }
 }, { timestamps: true });
 
 alarmSchema.index({ latitude: 1, longitude: 1 }, { unique: true });

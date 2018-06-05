@@ -34,6 +34,7 @@ class Dashboard extends Component {
       modal: false,
       modalData: {},
       modalForm: false,
+      modalType: '',
     };
 
     this.toggle = this.toggle.bind(this);
@@ -41,6 +42,9 @@ class Dashboard extends Component {
     this.onChildClick = this.onChildClick.bind(this);
     this.addAlarm = this.addAlarm.bind(this);
     this.editAlarm = this.editAlarm.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.getAlarms = this.getAlarms.bind(this);
   }
 
   toggle() {
@@ -58,7 +62,7 @@ class Dashboard extends Component {
   handleInputChange(e) {
     let target = e.target;
     let modalData = this.state.modalData;
-
+    
     modalData[target.name] = target.value;
 
     this.setState({
@@ -66,27 +70,81 @@ class Dashboard extends Component {
     });
   }
 
+  handleSubmit() {
+    const formKeys = [ 'idEsp', 'region', 'latitude', 'longitude', 'connection', 'power', 'alarmState' ];
+    const alarmData = Object.keys(this.state.modalData)
+    .filter(key => formKeys.includes(key))
+    .reduce((obj, key) => {
+      obj[key] = this.state.modalData[key];
+      return obj;
+    }, {});
+    console.log(alarmData)
+    if (this.state.modalType === 'add') {
+      axios.post('http://localhost:8080/alarm', alarmData)
+      .then(({data}) => {
+        if (data.success) {
+          this.getAlarms();
+          this.toggleForm();
+        }
+        else {
+          alert(data.message);
+        }
+      })
+      .catch((err) => {
+        alert('Cannot connect to url');
+      });
+    }
+    else if (this.state.modalType === 'edit') {
+      axios.put(`http://localhost:8080/alarm/` + this.state.modalData._id, alarmData)
+      .then(({data}) => {
+        if (data.success) {
+          this.getAlarms();
+          this.toggleForm();
+        }
+        else {
+          alert(data.message);
+        }
+      })
+      .catch((err) => {
+        alert('Cannot connect to url');
+      });
+    }
+    
+  }
+
   addAlarm() {
     this.setState({
-      modalData: {},
+      modalData: {
+        'idEsp': '', 
+        'region': '', 
+        'latitude': 0, 
+        'longitude': 0, 
+        'connection': 'OFF', 
+        'power': 'OFF', 
+        'alarmState': 'OFF'
+      },
       modalForm: true,
+      modalType: 'add',
     });
   }
 
   editAlarm() {
     this.toggle();
-    this.toggleForm();
+    this.setState({
+      modalForm: true,
+      modalType: 'edit',
+    });
   }
 
   onChildClick(key, props) {
-    console.log(key);
-    console.log(props);
     this.setState({
+      modal: true,
+      modalType: 'view',
       modalData: props.data
-    }, this.toggle());
+    });
   }
 
-  componentDidMount() {
+  getAlarms() {
     axios.get('http://localhost:8080/alarm')
     .then(({data}) => {
       if (data.success) {
@@ -94,29 +152,35 @@ class Dashboard extends Component {
           alarms: data.result
         });
       }
+      else {
+        alert(data.message);
+      }
     })
     .catch((err) => {
       alert('Cannot connect to url');
-    })
+    });
+  }
+
+  componentDidMount() {
+    this.getAlarms();
   }
 
   render() {
     const alarms = this.state.alarms;
     const keys = {
-      'idEsp': 'ID', 
+      'idEsp': 'ESP8266 ID', 
       'region': 'Region', 
       'latitude': 'Latitude', 
       'longitude': 'Longitude', 
-      'connected': 'Connected', 
-      'powerOn': 'Power ON', 
-      'alarmOn': 'Alarm ON'
+      'connection': 'Connection', 
+      'power': 'Power', 
+      'alarmState': 'Alarm'
     };
     return (
       <div>
         <NavBarCustom/>
         <div className="container pb-3 pt-5">
           <h2 className="mb-3" >Dashboard EWS</h2>
-          <Button onClick={this.addAlarm}>Add New Alarm</Button>
           <div style={{ height: '70vh', width: '100%' }}>
             <GoogleMapReact
               bootstrapURLKeys={{ key: 'AIzaSyCWYIyET_3qS6mHYbqLWCPWicrgtxhPacM' }}
@@ -135,6 +199,7 @@ class Dashboard extends Component {
               )}
             </GoogleMapReact>
           </div>
+          <Button onClick={this.addAlarm}  color="primary" className="float-right my-3">Add New Alarm</Button>
           <Modal id="modal" isOpen={this.state.modal} toggle={this.toggle} >
             <ModalHeader toggle={this.toggle}>Alarm Detail</ModalHeader>
             <ModalBody>
@@ -142,7 +207,7 @@ class Dashboard extends Component {
                 Object.keys(keys).map((key) => 
                   <Row>
                     <Col className="col-6 col-md-3">{keys[key]}</Col>
-                    <Col> : {typeof(this.state.modalData[key]) === 'boolean' ? this.state.modalData[key].toString() : this.state.modalData[key]}</Col>
+                    <Col> : {this.state.modalData[key]}</Col>
                   </Row>)
               }
             </ModalBody>
@@ -152,18 +217,27 @@ class Dashboard extends Component {
             </ModalFooter>
           </Modal>
           <Modal id="modalForm" isOpen={this.state.modalForm} toggle={this.toggleForm} >
-            <ModalHeader toggle={this.toggleForm}>Add Alarm</ModalHeader>
+            <ModalHeader toggle={this.toggleForm}>{this.state.modalType === 'add' ? 'Add Alarm' : 'Edit Alarm'}</ModalHeader>
             <ModalBody>
               {this.state.modalData && 
                 Object.keys(keys).map((key) => 
                   <Row>
                     <Col className="col-6 col-md-3">{keys[key]}</Col>
-                    <Col> : <Input id={key} name={key} type="text" placeholder={this.state.modalData && this.state.modalData[key]}/></Col>
+                    <Col className="col-6 col-md-9">{ key === 'connection' || key === 'power' || key === 'alarmState'
+                        ?
+                        <Input id={key} name={key} type="select" value={this.state.modalData[key]} onChange={this.handleInputChange}>
+                          <option value={'ON'}>ON</option>
+                          <option value={'OFF'} selected>OFF</option>
+                        </Input>
+                        :
+                        <Input id={key} name={key} type="text" value={this.state.modalData[key]} onChange={this.handleInputChange}/>
+                      }
+                    </Col>
                   </Row>)
               }
             </ModalBody>
             <ModalFooter>
-              <Button color="primary" onClick={this.toggleForm}>Submit</Button>{'  '}
+              <Button color="primary" onClick={this.handleSubmit}>Submit</Button>{'  '}
               <Button color="secondary" onClick={this.toggleForm}>Cancel</Button>
             </ModalFooter>
           </Modal>
