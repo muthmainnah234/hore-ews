@@ -5,18 +5,14 @@ import axios from 'axios';
 import { 
   Modal, ModalBody, ModalHeader, ModalFooter, Button,
   Col, Row, Container, 
-  Form, Input,
+  Form, Input, FormGroup, Label
  } from 'reactstrap';
  import ModalCustom from './ModalCustom';
 
-const markerStyle = {
-  height: '40px', 
-  width: '40px',
-  position: 'absolute',
-  left: '-20px',
-  top: '-20px',
-};
-const Marker = () => <div><img style={markerStyle} src="http://www.wfgnj.com/wp-content/uploads/2014/07/bullhorn-1024x1024.png" /></div>;
+const Marker = ({status}) => 
+  <div className={`icon-marker ` + status}>
+    <i className="fa fa-bullhorn"/>
+  </div>;
 
 class Dashboard extends Component {
   static defaultProps = {
@@ -35,6 +31,7 @@ class Dashboard extends Component {
       modalData: {},
       modalForm: false,
       modalType: '',
+      region: ''
     };
 
     this.toggle = this.toggle.bind(this);
@@ -45,6 +42,7 @@ class Dashboard extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.getAlarms = this.getAlarms.bind(this);
+    this.handleFilter = this.handleFilter.bind(this);
   }
 
   toggle() {
@@ -78,7 +76,6 @@ class Dashboard extends Component {
       obj[key] = this.state.modalData[key];
       return obj;
     }, {});
-    console.log(alarmData)
     if (this.state.modalType === 'add') {
       axios.post('http://localhost:8080/alarm', alarmData)
       .then(({data}) => {
@@ -108,8 +105,18 @@ class Dashboard extends Component {
       .catch((err) => {
         alert('Cannot connect to url');
       });
+    } 
+  }
+
+  handleFilter(e) {
+    e.preventDefault();
+    if (this.state.region) {
+      let query = '?region=' + this.state.region;
+      this.getAlarms(query);
     }
-    
+    else {
+      this.getAlarms();
+    }    
   }
 
   addAlarm() {
@@ -121,7 +128,7 @@ class Dashboard extends Component {
         'longitude': 0, 
         'connection': 'OFF', 
         'power': 'OFF', 
-        'alarmState': 'OFF'
+        'alarmState': 0
       },
       modalForm: true,
       modalType: 'add',
@@ -144,8 +151,8 @@ class Dashboard extends Component {
     });
   }
 
-  getAlarms() {
-    axios.get('http://localhost:8080/alarm')
+  getAlarms(query = '') {
+    axios.get(`http://localhost:8080/alarm` + query)
     .then(({data}) => {
       if (data.success) {
         this.setState({
@@ -176,11 +183,28 @@ class Dashboard extends Component {
       'power': 'Power', 
       'alarmState': 'Alarm'
     };
+    const regions = [ 'JKT', 'BDG' ];
     return (
       <div>
         <NavBarCustom/>
-        <div className="container pb-3 pt-5">
+        <div className="container pb-3 pt-5 text-center">
           <h2 className="mb-3" >Dashboard EWS</h2>
+          <Form onSubmit={this.handleFilter}>
+            <FormGroup>
+              <Row className="justify-content-center">
+                {/* <Col className="col-auto align-middle"><Label>Region : </Label></Col> */}
+                <Col className="col-auto">
+                  <Input id="regionFilter" name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
+                    <option selected value={''}>Show All</option>
+                    {regions.map((value, key) => <option key={key} value={value}>{value}</option>)}
+                  </Input>
+                </Col>
+                <Col className="col-auto">
+                  <Button color="secondary" type="submit">Refresh</Button>
+                </Col>
+              </Row>
+            </FormGroup>
+          </Form>
           <div style={{ height: '70vh', width: '100%' }}>
             <GoogleMapReact
               bootstrapURLKeys={{ key: 'AIzaSyCWYIyET_3qS6mHYbqLWCPWicrgtxhPacM' }}
@@ -190,9 +214,16 @@ class Dashboard extends Component {
             >
               {alarms.map((alarm) => 
                 { 
+                  let alarmStatus = 'status-disconnect';
+                  if (alarm.alarmState != 0) 
+                    alarmStatus = 'status-alarm-on';
+                  else if (alarm.power === 'ON') 
+                    alarmStatus = 'status-power-on';
+                  else if (alarm.connection === 'ON') 
+                    alarmStatus = 'status-power-off';
                   return(
                     <div key={alarm._id} data={alarm} lat={alarm.latitude} lng={alarm.longitude}>
-                      <Marker />
+                      <Marker status={alarmStatus}/>
                     </div>
                   );
                 }
@@ -222,13 +253,10 @@ class Dashboard extends Component {
               {this.state.modalData && 
                 Object.keys(keys).map((key) => 
                   <Row>
-                    <Col className="col-6 col-md-3">{keys[key]}</Col>
-                    <Col className="col-6 col-md-9">{ key === 'connection' || key === 'power' || key === 'alarmState'
+                    <Col className="col-6 col-md-3 vcenter">{keys[key]}</Col>
+                    <Col className="col-6 col-md-9 vcenter">{ key === 'connection' || key === 'power' || key === 'alarmState'
                         ?
-                        <Input id={key} name={key} type="select" value={this.state.modalData[key]} onChange={this.handleInputChange}>
-                          <option value={'ON'}>ON</option>
-                          <option value={'OFF'} selected>OFF</option>
-                        </Input>
+                        <div className="">{this.state.modalData[key]}</div>
                         :
                         <Input id={key} name={key} type="text" value={this.state.modalData[key]} onChange={this.handleInputChange}/>
                       }

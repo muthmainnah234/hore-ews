@@ -8,3 +8,29 @@ body {
 td {
   vertical-align: middle !important;
 }
+
+.icon-marker {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  border-radius: 50%;
+  padding: 5px;
+  font-size: 30px;
+}
+
+.status-disconnect {
+  background-color: lightgrey;
+  color: gray;
+}
+.status-power-off {
+  background-color: lightcoral;
+  color: crimson;
+}
+.status-power-on {
+  background-color: greenyellow;
+  color: green;
+}
+.status-alarm-on {
+  background-color: rgb(255, 230, 0);
+  color: rgb(255, 153, 0);
+}
