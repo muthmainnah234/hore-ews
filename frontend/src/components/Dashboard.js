@@ -8,6 +8,7 @@ import {
   Form, Input, FormGroup, Label
  } from 'reactstrap';
  import ModalCustom from './ModalCustom';
+ import _ from 'lodash';
 
 const Marker = ({status}) => 
   <div className={`icon-marker ` + status}>
@@ -31,7 +32,9 @@ class Dashboard extends Component {
       modalData: {},
       modalForm: false,
       modalType: '',
-      region: ''
+      region: '',
+      allregions: [],
+      alarmform: false,
     };
 
     this.toggle = this.toggle.bind(this);
@@ -109,7 +112,6 @@ class Dashboard extends Component {
   }
 
   handleFilter(e) {
-    e.preventDefault();
     if (this.state.region) {
       let query = '?region=' + this.state.region;
       this.getAlarms(query);
@@ -158,6 +160,13 @@ class Dashboard extends Component {
         this.setState({
           alarms: data.result
         });
+        if (query === '') {
+          let allregions = data.result.map(alarm => alarm.region);
+          allregions = _.uniq(allregions);
+          this.setState({
+            allregions
+          });
+        } 
       }
       else {
         alert(data.message);
@@ -181,31 +190,68 @@ class Dashboard extends Component {
       'longitude': 'Longitude', 
       'connection': 'Connection', 
       'power': 'Power', 
-      'alarmState': 'Alarm'
+      'alarmState': 'Alarm State'
     };
-    const regions = [ 'JKT', 'BDG' ];
     return (
       <div>
         <NavBarCustom/>
-        <div className="container pb-3 pt-5 text-center">
-          <h2 className="mb-3" >Dashboard EWS</h2>
-          <Form onSubmit={this.handleFilter}>
-            <FormGroup>
-              <Row className="justify-content-center">
-                {/* <Col className="col-auto align-middle"><Label>Region : </Label></Col> */}
-                <Col className="col-auto">
-                  <Input id="regionFilter" name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
-                    <option selected value={''}>Show All</option>
-                    {regions.map((value, key) => <option key={key} value={value}>{value}</option>)}
-                  </Input>
-                </Col>
-                <Col className="col-auto">
-                  <Button color="secondary" type="submit">Refresh</Button>
-                </Col>
-              </Row>
-            </FormGroup>
-          </Form>
-          <div style={{ height: '70vh', width: '100%' }}>
+        <Container className="pb-3 pt-5 text-center">
+
+          <Row>
+          
+          <Col xs="12" md="3" >
+            <h2 className="mb-3" >Dashboard EWS</h2>
+            <hr/>
+            <Row>
+              <Col>
+              {
+                !this.state.alarmform ?
+                  <Button id="BtnWarning" onClick={() => {this.setState({alarmform: true});}} color="danger" className="p-3">
+                    <i className="fa fa-exclamation-triangle fa-lg fa-3x mb-3"/>
+                    <h3>WARNING</h3>
+                  </Button>
+                :
+                  <Form id="AlarmForm" className="form-horizontal text-left">
+                    <FormGroup>
+                      <Label className="mb-0">Alarm Type</Label>
+                      <Input type="select">
+                        <option>Tsunami</option>
+                        <option>Gunung Meletus</option>
+                      </Input>
+                    </FormGroup>
+                    <FormGroup>
+                      <Label className="mb-0">Region</Label>
+                      <Input type="select" >
+                        <option selected value={''}>All</option>
+                        {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
+                      </Input>
+                    </FormGroup>
+                    <Button onClick={() => {this.setState({alarmform: false});}} color="danger"><span><i className="fa fa-exclamation-circle"/></span> SUBMIT</Button>
+                  </Form>
+              }
+              </Col>
+            </Row>
+            <hr/>
+            <Row>
+              <Col >
+                <Input id="regionFilter" name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
+                  <option selected value={''}>All</option>
+                  {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
+                </Input>
+              </Col>
+              <Col xs="auto" >
+                <Button color="secondary" onClick={this.handleFilter}>Refresh</Button>
+              </Col>
+            </Row>
+            <hr/>
+            <Row>
+              <Col>
+                <Button onClick={this.addAlarm}  color="primary">Add New Alarm</Button>
+              </Col>
+            </Row>
+          </Col>
+           
+          <Col xs="12" md="9" style={{ height: '80vh', width: '100%' }}>
             <GoogleMapReact
               bootstrapURLKeys={{ key: 'AIzaSyCWYIyET_3qS6mHYbqLWCPWicrgtxhPacM' }}
               defaultCenter={this.props.center}
@@ -229,16 +275,17 @@ class Dashboard extends Component {
                 }
               )}
             </GoogleMapReact>
-          </div>
-          <Button onClick={this.addAlarm}  color="primary" className="float-right my-3">Add New Alarm</Button>
+          </Col>
+          </Row>
+
           <Modal id="modal" isOpen={this.state.modal} toggle={this.toggle} >
             <ModalHeader toggle={this.toggle}>Alarm Detail</ModalHeader>
             <ModalBody>
               {this.state.modalData && 
-                Object.keys(keys).map((key) => 
-                  <Row>
-                    <Col className="col-6 col-md-3">{keys[key]}</Col>
-                    <Col> : {this.state.modalData[key]}</Col>
+                Object.keys(keys).map((item, key) => 
+                  <Row key={key}>
+                    <Col className="col-6 col-md-3">{keys[item]}</Col>
+                    <Col> : {this.state.modalData[item]}</Col>
                   </Row>)
               }
             </ModalBody>
@@ -247,18 +294,19 @@ class Dashboard extends Component {
               <Button color="secondary" onClick={this.toggle}>Cancel</Button>
             </ModalFooter>
           </Modal>
+
           <Modal id="modalForm" isOpen={this.state.modalForm} toggle={this.toggleForm} >
             <ModalHeader toggle={this.toggleForm}>{this.state.modalType === 'add' ? 'Add Alarm' : 'Edit Alarm'}</ModalHeader>
             <ModalBody>
               {this.state.modalData && 
-                Object.keys(keys).map((key) => 
-                  <Row>
-                    <Col className="col-6 col-md-3 vcenter">{keys[key]}</Col>
-                    <Col className="col-6 col-md-9 vcenter">{ key === 'connection' || key === 'power' || key === 'alarmState'
+                Object.keys(keys).map((item, key) => 
+                  <Row key={key}>
+                    <Col className="col-6 col-md-3 vcenter">{keys[item]}</Col>
+                    <Col className="col-6 col-md-9 vcenter">{ item === 'connection' || item === 'power' || item === 'alarmState'
                         ?
-                        <div className="">{this.state.modalData[key]}</div>
+                        <div className="">{this.state.modalData[item]}</div>
                         :
-                        <Input id={key} name={key} type="text" value={this.state.modalData[key]} onChange={this.handleInputChange}/>
+                        <Input id={item} name={item} type="text" value={this.state.modalData[item]} onChange={this.handleInputChange}/>
                       }
                     </Col>
                   </Row>)
@@ -269,7 +317,7 @@ class Dashboard extends Component {
               <Button color="secondary" onClick={this.toggleForm}>Cancel</Button>
             </ModalFooter>
           </Modal>
-        </div>
+        </Container>
       </div>
     );
   }
