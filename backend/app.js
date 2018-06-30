@@ -1,7 +1,11 @@
 const express = require("express");
 const app = express();
 const mongoose = require('mongoose');
-const bodyParser= require('body-parser');
+const bodyParser = require('body-parser');
+const mqttHandler = require('./mqtt_handler');
+
+var mqttClient = new mqttHandler();
+mqttClient.connect();
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
