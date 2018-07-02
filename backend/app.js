@@ -1,10 +1,10 @@
-const express = require("express");
+const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const mqttHandler = require('./mqtt_handler');
 
-var mqttClient = new mqttHandler();
+const mqttClient = new mqttHandler();
 mqttClient.connect();
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -19,6 +19,16 @@ app.use((req, res, next) => {
 
 app.get('/', (req, res) => {
   res.send('Hello, World!');
+});
+
+app.post("/send-mqtt", function(req, res) {
+  const { topic, data } = req.body;
+  mqttClient.sendMessage(topic, JSON.stringify(data));
+  return res.json({
+    success: true,
+    message: 'Message sent to mqtt',
+    result: '',
+  });
 });
 
 app.use('/phone', require('./routes/apiPhone'));
@@ -37,3 +47,4 @@ mongoose.connect('mongodb://127.0.0.1/hore-ews');
 mongoose.connection.on('error', (err) => {
   console.error(err);
 });
+

@@ -32,35 +32,40 @@ class Dashboard extends Component {
       modalData: {},
       modalForm: false,
       modalType: '',
-      region: '',
+      region: 'All',
+      alarmType: 1,
       allregions: [],
       alarmform: false,
     };
 
-    this.toggle = this.toggle.bind(this);
-    this.toggleForm = this.toggleForm.bind(this);
-    this.onChildClick = this.onChildClick.bind(this);
-    this.addAlarm = this.addAlarm.bind(this);
-    this.editAlarm = this.editAlarm.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.getAlarms = this.getAlarms.bind(this);
-    this.handleFilter = this.handleFilter.bind(this);
+    // this.toggle = this.toggle.bind(this);
+    // this.toggleForm = this.toggleForm.bind(this);
+    // this.onChildClick = this.onChildClick.bind(this);
+    // this.addAlarm = this.addAlarm.bind(this);
+    // this.editAlarm = this.editAlarm.bind(this);
+    // this.handleInputChange = this.handleInputChange.bind(this);
+    // this.handleSubmit = this.handleSubmit.bind(this);
+    // this.getAlarms = this.getAlarms.bind(this);
+    // this.handleFilter = this.handleFilter.bind(this);
   }
 
-  toggle() {
+  componentDidMount() {
+    this.getAlarms();
+  }
+
+  toggle = () => {
     this.setState({
       modal: !this.state.modal
     });
   }
 
-  toggleForm() {
+  toggleForm = () => {
     this.setState({
       modalForm: !this.state.modalForm
     });
   }
 
-  handleInputChange(e) {
+  handleInputChange = (e) => {
     let target = e.target;
     let modalData = this.state.modalData;
     
@@ -71,7 +76,7 @@ class Dashboard extends Component {
     });
   }
 
-  handleSubmit() {
+  handleSubmit = () => {
     const formKeys = [ 'idEsp', 'region', 'latitude', 'longitude', 'connection', 'power', 'alarmState' ];
     const alarmData = Object.keys(this.state.modalData)
     .filter(key => formKeys.includes(key))
@@ -111,8 +116,8 @@ class Dashboard extends Component {
     } 
   }
 
-  handleFilter(e) {
-    if (this.state.region) {
+  handleFilter = (e) => {
+    if (this.state.region !== 'All') {
       let query = '?region=' + this.state.region;
       this.getAlarms(query);
     }
@@ -121,7 +126,7 @@ class Dashboard extends Component {
     }    
   }
 
-  addAlarm() {
+  addAlarm = () => {
     this.setState({
       modalData: {
         'idEsp': '', 
@@ -137,7 +142,7 @@ class Dashboard extends Component {
     });
   }
 
-  editAlarm() {
+  editAlarm = () => {
     this.toggle();
     this.setState({
       modalForm: true,
@@ -145,7 +150,7 @@ class Dashboard extends Component {
     });
   }
 
-  onChildClick(key, props) {
+  onChildClick = (key, props) => {
     this.setState({
       modal: true,
       modalType: 'view',
@@ -153,7 +158,7 @@ class Dashboard extends Component {
     });
   }
 
-  getAlarms(query = '') {
+  getAlarms = (query = '') => {
     axios.get(`http://localhost:8080/alarm` + query)
     .then(({data}) => {
       if (data.success) {
@@ -177,9 +182,27 @@ class Dashboard extends Component {
     });
   }
 
-  componentDidMount() {
-    this.getAlarms();
-  }
+  handleWarning = (e) => {
+    e.preventDefault();
+    
+    const topic = 'alarm' + (this.state.region === 'All' ? '*' : this.state.region);
+    const data = {
+      alarmType: this.state.alarmType
+    }
+    const body = {
+      topic,
+      data
+    }
+
+    axios.post('http://localhost:8080/send-mqtt', body)
+    .then(({data}) => {
+      this.setState({alarmform: false});
+      alert(data.message);
+    })
+    .catch((err) => {
+      alert('Cannot connect to url');
+    });
+  }  
 
   render() {
     const alarms = this.state.alarms;
@@ -211,22 +234,26 @@ class Dashboard extends Component {
                     <h3>WARNING</h3>
                   </Button>
                 :
-                  <Form id="AlarmForm" className="form-horizontal text-left">
+                  <Form id="AlarmForm" className="form-horizontal text-left" onSubmit={this.handleWarning}>
                     <FormGroup>
                       <Label className="mb-0">Alarm Type</Label>
-                      <Input type="select">
-                        <option>Tsunami</option>
-                        <option>Gunung Meletus</option>
+                      <Input type="select" name="alarmType" value={this.state.alarmType} onChange={(e) => {this.setState({alarmType: e.target.value})}}>
+                        <option value={1}>Tsunami</option>
+                        <option value={2}>Gunung Meletus</option>
                       </Input>
                     </FormGroup>
                     <FormGroup>
                       <Label className="mb-0">Region</Label>
-                      <Input type="select" >
-                        <option selected value={''}>All</option>
+                      {/* <Input type="select" value={this.state.region}>
+                        <option value={''}>All</option>
+                        {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
+                      </Input> */}
+                      <Input name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
+                        <option value="All">All</option>
                         {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
                       </Input>
                     </FormGroup>
-                    <Button onClick={() => {this.setState({alarmform: false});}} color="danger"><span><i className="fa fa-exclamation-circle"/></span> SUBMIT</Button>
+                    <Button type="submit" color="danger"><span><i className="fa fa-exclamation-circle"/></span> SUBMIT</Button>
                   </Form>
               }
               </Col>
@@ -235,7 +262,7 @@ class Dashboard extends Component {
             <Row>
               <Col >
                 <Input id="regionFilter" name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
-                  <option selected value={''}>All</option>
+                  <option value="All">All</option>
                   {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
                 </Input>
               </Col>
