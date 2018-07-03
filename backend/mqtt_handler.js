@@ -22,11 +22,10 @@ class MqttHandler {
 	});
 
 	// mqtt subscriptions
-	this.mqttClient.subscribe('server', {qos: 0});
-	this.mqttClient.subscribe('alarm/*', {qos: 0});
+	this.mqttClient.subscribe('alarm/#', {qos: 0});
 
 	// When a message arrives, console.log it
-	this.mqttClient.on('message', function (topic, data) {
+	this.mqttClient.on('message', (topic, data) => {
     console.log(topic);
     console.log(JSON.parse(data));
 	});
@@ -38,7 +37,7 @@ class MqttHandler {
 
   // Sends a mqtt message to topic: mytopic
   sendMessage(topic, data) {
-	  this.mqttClient.publish(topic, data);
+		this.mqttClient.publish(topic, data);
   }
 }
 
