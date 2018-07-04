@@ -10,29 +10,29 @@ class MqttHandler {
     // Connect mqtt with credentials (in case of needed, otherwise we can omit 2nd param)
     this.mqttClient = mqtt.connect(this.host);
 
-	// Mqtt error calback
-	this.mqttClient.on('error', (err) => {
-	  console.log(err);
-	  this.mqttClient.end();
-	});
+		// Mqtt error calback
+		this.mqttClient.on('error', (err) => {
+			console.log(err);
+			this.mqttClient.end();
+		});
 
-	// Connection callback
-	this.mqttClient.on('connect', () => {
-	  console.log(`mqtt client connected`);
-	});
+		// Connection callback
+		this.mqttClient.on('connect', () => {
+			console.log(`mqtt client connected`);
+		});
 
-	// mqtt subscriptions
-	this.mqttClient.subscribe('alarm/#', {qos: 0});
+		// mqtt subscriptions
+		this.mqttClient.subscribe('alarm/#', {qos: 0});
 
-	// When a message arrives, console.log it
-	this.mqttClient.on('message', (topic, data) => {
-    console.log(topic);
-    console.log(JSON.parse(data));
-	});
+		// When a message arrives, console.log it
+		this.mqttClient.on('message', (topic, data) => {
+			console.log('message received from ', topic);
+			console.log(JSON.parse(data));
+		});
 
-	this.mqttClient.on('close', () => {
-	  console.log(`mqtt client disconnected`);
-	});
+		this.mqttClient.on('close', () => {
+			console.log(`mqtt client disconnected`);
+		});
   }
 
   // Sends a mqtt message to topic: mytopic

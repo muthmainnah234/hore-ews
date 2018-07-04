@@ -2,9 +2,12 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const mqttHandler = require('./classes/mqtt_handler');
 
 const mqttClient = new mqttHandler();
 mqttClient.connect();
+
+module.exports = mqttClient;
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
