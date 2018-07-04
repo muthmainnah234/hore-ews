@@ -185,10 +185,12 @@ class Dashboard extends Component {
   handleWarning = (e) => {
     e.preventDefault();
     
-    const topic = 'alarm' + (this.state.region === 'All' ? '*' : this.state.region);
+    const topic = 'alarm/' + (this.state.region === 'All' ? '#' : this.state.region);
     const data = {
       alarmType: this.state.alarmType
     }
+    console.log(topic);
+    console.log(data);
     const body = {
       topic,
       data

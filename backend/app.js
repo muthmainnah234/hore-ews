@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const mqttHandler = require('./mqtt_handler');
 
 const mqttClient = new mqttHandler();
 mqttClient.connect();
@@ -21,19 +20,10 @@ app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-app.post("/send-mqtt", function(req, res) {
-  const { topic, data } = req.body;
-  mqttClient.sendMessage(topic, JSON.stringify(data));
-  return res.json({
-    success: true,
-    message: 'Message sent to mqtt',
-    result: '',
-  });
-});
-
 app.use('/phone', require('./routes/apiPhone'));
 app.use('/alarm', require('./routes/apiAlarm'));
 app.use('/user', require('./routes/apiUser'));
+app.use('/mqtt', require('./routes/apiMqtt'));
 
 app.set('port', process.env.PORT || 8080);
 
