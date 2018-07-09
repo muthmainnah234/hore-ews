@@ -18,7 +18,7 @@ td {
   font-size: 30px;
 }
 
-.status-disconnect {
+.status-disconnected {
   background-color: lightgrey;
   color: gray;
 }
@@ -26,7 +26,7 @@ td {
   background-color: lightcoral;
   color: crimson;
 }
-.status-power-on {
+.status-connected {
   background-color: greenyellow;
   color: green;
 }

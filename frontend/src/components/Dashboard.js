@@ -37,16 +37,6 @@ class Dashboard extends Component {
       allregions: [],
       alarmform: false,
     };
-
-    // this.toggle = this.toggle.bind(this);
-    // this.toggleForm = this.toggleForm.bind(this);
-    // this.onChildClick = this.onChildClick.bind(this);
-    // this.addAlarm = this.addAlarm.bind(this);
-    // this.editAlarm = this.editAlarm.bind(this);
-    // this.handleInputChange = this.handleInputChange.bind(this);
-    // this.handleSubmit = this.handleSubmit.bind(this);
-    // this.getAlarms = this.getAlarms.bind(this);
-    // this.handleFilter = this.handleFilter.bind(this);
   }
 
   componentDidMount() {
@@ -77,7 +67,7 @@ class Dashboard extends Component {
   }
 
   handleSubmit = () => {
-    const formKeys = [ 'idEsp', 'region', 'latitude', 'longitude', 'connection', 'power', 'alarmState' ];
+    const formKeys = [ 'idEsp', 'region', 'latitude', 'longitude', 'connection', 'alarmState' ];
     const alarmData = Object.keys(this.state.modalData)
     .filter(key => formKeys.includes(key))
     .reduce((obj, key) => {
@@ -134,7 +124,6 @@ class Dashboard extends Component {
         'latitude': 0, 
         'longitude': 0, 
         'connection': 'OFF', 
-        'power': 'OFF', 
         'alarmState': 0
       },
       modalForm: true,
@@ -207,97 +196,88 @@ class Dashboard extends Component {
       'latitude': 'Latitude', 
       'longitude': 'Longitude', 
       'connection': 'Connection', 
-      'power': 'Power', 
       'alarmState': 'Alarm State'
     };
     return (
       <div>
         <NavBarCustom/>
         <Container className="pb-3 pt-5 text-center">
-
           <Row>
-          
-          <Col xs="12" md="3" >
-            <h2 className="mb-3" >Dashboard EWS</h2>
-            <hr/>
-            <Row>
-              <Col>
-              {
-                !this.state.alarmform ?
-                  <Button id="BtnWarning" onClick={() => {this.setState({alarmform: true});}} color="danger" className="p-3">
-                    <i className="fa fa-exclamation-triangle fa-lg fa-3x mb-3"/>
-                    <h3>WARNING</h3>
-                  </Button>
-                :
-                  <Form id="AlarmForm" className="form-horizontal text-left" onSubmit={this.handleWarning}>
-                    <FormGroup>
-                      <Label className="mb-0">Alarm Type</Label>
-                      <Input type="select" name="alarmType" value={this.state.alarmType} onChange={(e) => {this.setState({alarmType: e.target.value})}}>
-                        <option value={1}>Tsunami</option>
-                        <option value={2}>Gunung Meletus</option>
-                      </Input>
-                    </FormGroup>
-                    <FormGroup>
-                      <Label className="mb-0">Region</Label>
-                      {/* <Input type="select" value={this.state.region}>
-                        <option value={''}>All</option>
-                        {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
-                      </Input> */}
-                      <Input name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
-                        <option value="All">All</option>
-                        {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
-                      </Input>
-                    </FormGroup>
-                    <Button type="submit" color="danger"><span><i className="fa fa-exclamation-circle"/></span> SUBMIT</Button>
-                  </Form>
-              }
-              </Col>
-            </Row>
-            <hr/>
-            <Row>
-              <Col >
-                <Input id="regionFilter" name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
-                  <option value="All">All</option>
-                  {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
-                </Input>
-              </Col>
-              <Col xs="auto" >
-                <Button color="secondary" onClick={this.handleFilter}>Refresh</Button>
-              </Col>
-            </Row>
-            <hr/>
-            <Row>
-              <Col>
-                <Button onClick={this.addAlarm}  color="primary">Add New Alarm</Button>
-              </Col>
-            </Row>
-          </Col>
-           
-          <Col xs="12" md="9" style={{ height: '80vh', width: '100%' }}>
-            <GoogleMapReact
-              bootstrapURLKeys={{ key: 'AIzaSyCWYIyET_3qS6mHYbqLWCPWicrgtxhPacM' }}
-              defaultCenter={this.props.center}
-              defaultZoom={this.props.zoom}
-              onChildClick={this.onChildClick}
-            >
-              {alarms.map((alarm) => 
-                { 
-                  let alarmStatus = 'status-disconnect';
-                  if (alarm.alarmState != 0) 
-                    alarmStatus = 'status-alarm-on';
-                  else if (alarm.power === 'ON') 
-                    alarmStatus = 'status-power-on';
-                  else if (alarm.connection === 'ON') 
-                    alarmStatus = 'status-power-off';
-                  return(
-                    <div key={alarm._id} data={alarm} lat={alarm.latitude} lng={alarm.longitude}>
-                      <Marker status={alarmStatus}/>
-                    </div>
-                  );
+            <Col xs="12" md="3" >
+              <h2 className="mb-3" >Dashboard EWS</h2>
+              <hr/>
+              <Row>
+                <Col>
+                {
+                  !this.state.alarmform ?
+                    <Button id="BtnWarning" onClick={() => {this.setState({alarmform: true});}} color="danger" className="p-3">
+                      <i className="fa fa-exclamation-triangle fa-lg fa-3x mb-3"/>
+                      <h3>WARNING</h3>
+                    </Button>
+                  :
+                    <Form id="AlarmForm" className="form-horizontal text-left" onSubmit={this.handleWarning}>
+                      <FormGroup>
+                        <Label className="mb-0">Alarm Type</Label>
+                        <Input type="select" name="alarmType" value={this.state.alarmType} onChange={(e) => {this.setState({alarmType: e.target.value})}}>
+                          <option value={1}>Tsunami</option>
+                          <option value={2}>Gunung Meletus</option>
+                        </Input>
+                      </FormGroup>
+                      <FormGroup>
+                        <Label className="mb-0">Region</Label>
+                        <Input name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
+                          <option value="All">All</option>
+                          {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
+                        </Input>
+                      </FormGroup>
+                      <Button type="submit" color="danger"><span><i className="fa fa-exclamation-circle"/></span> SUBMIT</Button>
+                    </Form>
                 }
-              )}
-            </GoogleMapReact>
-          </Col>
+                </Col>
+              </Row>
+              <hr/>
+              <Row>
+                <Col >
+                  <Input id="regionFilter" name="region" type="select" value={this.state.region} onChange={(e) => {this.setState({region: e.target.value})}}>
+                    <option value="All">All</option>
+                    {this.state.allregions.map((value, key) => <option key={key} value={value}>{value}</option>)}
+                  </Input>
+                </Col>
+                <Col xs="auto" >
+                  <Button color="secondary" onClick={this.handleFilter}>Refresh</Button>
+                </Col>
+              </Row>
+              <hr/>
+              <Row>
+                <Col>
+                  <Button onClick={this.addAlarm}  color="primary">Add New Alarm</Button>
+                </Col>
+              </Row>
+            </Col>
+            
+            <Col xs="12" md="9" style={{ height: '80vh', width: '100%' }}>
+              <GoogleMapReact
+                bootstrapURLKeys={{ key: 'AIzaSyCWYIyET_3qS6mHYbqLWCPWicrgtxhPacM' }}
+                defaultCenter={this.props.center}
+                defaultZoom={this.props.zoom}
+                onChildClick={this.onChildClick}
+              >
+                {alarms.map((alarm) => 
+                  { 
+                    let alarmStatus = 'status-disconnected';
+                    if (alarm.alarmState !== 0) 
+                      alarmStatus = 'status-alarm-on';
+                    else if (alarm.connection === 'ON') 
+                      alarmStatus = 'status-connected';
+                    return(
+                      <div key={alarm._id} data={alarm} lat={alarm.latitude} lng={alarm.longitude}>
+                        <Marker status={alarmStatus}/>
+                      </div>
+                    );
+                  }
+                )}
+              </GoogleMapReact>
+            </Col>
           </Row>
 
           <Modal id="modal" isOpen={this.state.modal} toggle={this.toggle} >
@@ -324,8 +304,8 @@ class Dashboard extends Component {
                 Object.keys(keys).map((item, key) => 
                   <Row key={key}>
                     <Col className="col-6 col-md-3 vcenter">{keys[item]}</Col>
-                    <Col className="col-6 col-md-9 vcenter">{ item === 'connection' || item === 'power' || item === 'alarmState'
-                        ?
+                    <Col className="col-6 col-md-9 vcenter">
+                      { item === 'connection' || item === 'alarmState' ?
                         <div className="">{this.state.modalData[item]}</div>
                         :
                         <Input id={item} name={item} type="text" value={this.state.modalData[item]} onChange={this.handleInputChange}/>
