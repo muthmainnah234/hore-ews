@@ -21,7 +21,7 @@ router.post("/:type/:value", function(req, res) {
         });
       } else if (alarms) {
         alarms.map((alarm) => {
-          mqttClient.sendMessage(`alarm/`+alarm.idEsp, data);
+          mqttClient.sendMessage(`hore-ews/alarm/`+alarm.idEsp, data);
         });
         return res.json({
           success: true,
@@ -31,7 +31,7 @@ router.post("/:type/:value", function(req, res) {
       }
     });
   } else if (type === 'id') {
-    mqttClient.sendMessage(`alarm/`+value, data);
+    mqttClient.sendMessage(`hore-ews/alarm/`+value, data);
     return res.json({
       success: true,
       message: 'Message sent',
