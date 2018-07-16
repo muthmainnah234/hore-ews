@@ -175,7 +175,7 @@ class Dashboard extends Component {
     e.preventDefault();
     
     const data = {
-      alarmType: this.state.alarmType
+      alarmState: this.state.alarmType
     }
 
     axios.post(`http://localhost:8080/mqtt/region/` + this.state.region, data)

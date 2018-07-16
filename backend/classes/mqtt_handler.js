@@ -26,17 +26,17 @@ class MqttHandler {
 		});
 
 		// mqtt subscriptions
-		this.mqttClient.subscribe('hore-ews/server');
-		this.mqttClient.subscribe('hore-ews/alarm/#');
+		// this.mqttClient.subscribe('hore-ews/state/#');
+		this.mqttClient.subscribe('hore-ews/#');
 
 		// When a message arrives, console.log it
 		this.mqttClient.on('message', (topic, data) => {
 			console.log('message received in topic : ', topic);
-			const subtopics = topic.split('/');
 			
-			// when message arrives on alarm/:id, update alarm with the id by data sent
-			if (subtopics[1] === 'alarm') {
-				const update = JSON.parse(data);
+			// when message arrives on hore-ews/state/:id, update alarm with the id by data sent
+			if (topic.substring(0,15) === 'hore-ews/state/') {
+        const subtopics = topic.split('/');
+        const update = JSON.parse(data);
 				Alarm.update({ idEsp: subtopics[2] }, { $set: update }, (updateErr, newAlarm) => {
 					if (updateErr) {
 						console.log(updateErr.message || 'Error at updating alarm');
@@ -46,7 +46,7 @@ class MqttHandler {
 					}
 				})
 			} else {
-				console.log(data);
+				console.log(JSON.parse(data));
 			}
 		});
 
