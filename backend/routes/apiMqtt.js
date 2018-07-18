@@ -1,11 +1,34 @@
 const express = require('express');
 const router = express.Router();
+const util = require('util');
 const Alarm = require('../models/Alarm');
 const Phone = require('../models/Phone');
 const mqttClient = require('../app');
 
+let sendMessage = util.promisify(mqttClient.sendMessage).bind(mqttClient);
+
+sendAllMessage = (numbers) => {
+  console.log(numbers);
+  return new Promise((resolve, reject) => {
+    let index = 0;
+    let timer = setInterval(() => {
+      if (index < numbers.length) {
+        sendMessage('hore-ews/sms',numbers[index++])
+        .catch((error) => {
+          console.log(error);
+          clearInterval(timer);
+          reject();                        
+        });
+      } else {
+        clearInterval(timer);
+        resolve();
+      }
+    }, 3000);
+  })
+}
+
 router.post("/:type/:value", function(req, res) {
-  const alarmData = JSON.stringify(req.body);
+  const alarmData = req.body.alarmState.toString();
   const { type, value } = req.params;
 
   if (type === 'region') {
@@ -23,10 +46,8 @@ router.post("/:type/:value", function(req, res) {
         });
       } else if (phones) {
         const arrData = Array.from(phones, item => { return item.phonenumber });
-        const phoneData = {
-          phoneNumbers: arrData
-        }
-        mqttClient.sendMessage('hore-ews/sms', JSON.stringify(phoneData));
+
+        sendAllMessage(arrData);
 
         Alarm.find(param, 'idEsp', (findErr, alarms) => {
           if (findErr) {
